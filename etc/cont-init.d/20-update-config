@@ -1,0 +1,8 @@
+#!/usr/bin/with-contenv bash
+
+echo "Updating Mopidy Config" \
+sed -i \
+  -e "s#%MOPIDY_CACHE_DIR%#$MOPIDY_CACHE_DIR#g" \
+ 	-e "s#%MOPIDY_DATA_DIR%#$MOPIDY_DATA_DIR#g" \
+  -e "s#%MOPIDY_CONFIG_DIR%#$MOPIDY_CONFIG_DIR#g" \
+	"${MOPIDY_CONFIG_DIR}/mopidy.conf"

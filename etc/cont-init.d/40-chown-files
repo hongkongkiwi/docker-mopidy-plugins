@@ -1,0 +1,27 @@
+#!/usr/bin/with-contenv bash
+
+# create folders
+if [ ! -d "${MOPIDY_CACHE_DIR}" ]; then \
+	mkdir -p "${MOPIDY_CACHE_DIR}"
+	chown -R abc:abc "${MOPIDY_CACHE_DIR}"
+fi
+
+if [ ! -d "${MOPIDY_CONFIG_DIR}" ]; then \
+  mkdir -p "${MOPIDY_CONFIG_DIR}"
+  chown -R abc:abc "${MOPIDY_CONFIG_DIR}"
+fi
+
+# check Library permissions
+PUID=${PUID:-911}
+if [ ! "$(stat -c %u ${MOPIDY_DATA_DIR})" = "$PUID" ]; then
+	echo "Change in ownership detected, please be patient while we chown existing files"
+	echo "This could take some time"
+	chown abc:users -R \
+		"${MOPIDY_CONFIG_DIR}"
+fi
+
+# permissions (non-recursive) on config root and folders
+chown abc:users \
+	"${MOPIDY_CONFIG_DIR}" \
+	"${MOPIDY_CACHE_DIR}" \
+	"${MOPIDY_DATA_DIR}"
