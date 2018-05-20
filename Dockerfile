@@ -1,11 +1,11 @@
 FROM alpine
 MAINTAINER Andy Savage <andy@savage.hk>
 
-# VOLUME ["/mopidy/config","/mopidy/cache","/mopidy/data"]
+ENV MOPIDY_CACHE_DIR="/root/.cache/mopidy" \
+		MOPIDY_CONFIG_DIR="/root/.config/mopidy" \
+		MOPIDY_DATA_DIR="/root/.local/share/mopidy"
 
-ENV MOPIDY_CACHE_DIR="/root/.cache" \
-		MOPIDY_CONFIG_DIR="/root/.config" \
-		MOPIDY_DATA_DIR="/var/lib/mopidy"
+VOLUME ["$MOPIDY_CONFIG_DIR","$MOPIDY_DATA_DIR"]
 
 ENV MOPIDY_PYTHON_PLUGINS="\
 git+https://github.com/pkkid/python-plexapi.git \
@@ -24,15 +24,15 @@ Mopidy-Material-Webclient \
 Mopidy-Local-SQLite \
 Mopidy-RNZ \
 Mopidy-Tachikoma \
-Mopidy-Podcast \
 Mopidy-Dirble \
+Mopidy-Podcast \
+Mopidy-Podcast-iTunes \
 Mopidy-PlaybackDefaults \
 Mopidy-Scrobbler \
 Mopidy-Youtube \
 Mopidy-InternetArchive \
 Mopidy-radio-de \
 Mopidy-TuneIn \
-Mopidy-Podcast-iTunes \
 "
 
 ENV MOPIDY_PLUGINS_EXTRA_PACKAGES=" \
@@ -46,7 +46,7 @@ ARG LIBSPOTIFY_BASE="/tmp/libspotify-12.1.51-Linux-x86_64"
 RUN echo "Installing Alpine Packages" \
   && apk add --update --no-cache \
         --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ \
-        tini bash \
+        tini bash ca-certificates \
         gcc g++ make git musl-utils \
         mopidy \
         gst-plugins-good0.10 gst-plugins-bad0.10 gst-plugins-ugly0.10 \
@@ -84,7 +84,10 @@ RUN echo "Fixing up Mopidy Config" \
     "${MOPIDY_CONFIG_DIR}/mopidy.conf"
 
 RUN echo "Cleaining Up" \
-  && apk del gcc g++ make git \
+  && apk del \
+      gcc g++ make git musl-utils \
+      libxml2-dev libxslt-dev \
+      python2-dev python3-dev \
   #&& rm -rf /tmp/* \
   && rm -rf ~/.cache/pip \
   && rm -rf /var/cache/apk/*
@@ -96,5 +99,5 @@ EXPOSE 6680
 # RUN pip install Mopidy-MusicBox-Webclient
 # RUN pip install Mopidy-Mobile
 
-ENTRYPOINT ["/sbin/tini","--"]
-CMD ["mopidy","--config ${MOPIDY_CONFIG_DIR}/mopidy.conf"]
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["mopidy", "--config","${MOPIDY_CONFIG_DIR}"]
