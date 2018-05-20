@@ -5,7 +5,7 @@ ENV MOPIDY_CACHE_DIR="/root/.cache/mopidy" \
 		MOPIDY_CONFIG_DIR="/root/.config/mopidy" \
 		MOPIDY_DATA_DIR="/root/.local/share/mopidy"
 
-VOLUME ["$MOPIDY_CONFIG_DIR","$MOPIDY_DATA_DIR"]
+VOLUME ["/root/.local/mopidy","/root/.config/mopidy"]
 
 ENV MOPIDY_PYTHON_PLUGINS="\
 git+https://github.com/pkkid/python-plexapi.git \
@@ -47,7 +47,7 @@ RUN echo "Installing Alpine Packages" \
   && apk add --update --no-cache \
         --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ \
         tini bash ca-certificates \
-        gcc g++ make git musl-utils \
+        gcc g++ make git musl-utils sed \
         mopidy \
         gst-plugins-good0.10 gst-plugins-bad0.10 gst-plugins-ugly0.10 \
         alsa-utils \
@@ -59,7 +59,8 @@ RUN echo "Installing Alpine Packages" \
   && mkdir -p "${MOPIDY_DATA_DIR}" \
   && mkdir -p "$LIBSPOTIFY_BASE"
 
-# Add Libspotify
+# Add Files
+ADD mopidy.conf "${MOPIDY_CONFIG_DIR}"
 ADD "libspotify-12.1.51-Linux-x86_64" "$LIBSPOTIFY_BASE"
 
 RUN echo "Compiling Libspotify" \
@@ -75,25 +76,24 @@ RUN echo "Installing Mopidy Python Plugins" \
 
 # Add the configuration file.
 # RUN mkdir -p $(dirname "${MOPIDY_CONFIG_FILES}")
-ADD mopidy.conf "${MOPIDY_CONFIG_DIR}"
 RUN echo "Fixing up Mopidy Config" \
   && sed -i \
   	-e "s#%MOPIDY_CACHE_DIR%#$MOPIDY_CACHE_DIR#g" \
   	-e "s#%MOPIDY_DATA_DIR%#$MOPIDY_DATA_DIR#g" \
   	-e "s#%MOPIDY_CONFIG_DIR%#$MOPIDY_CONFIG_DIR#g" \
-    "${MOPIDY_CONFIG_DIR}/mopidy.conf"
+    ${MOPIDY_CONFIG_DIR}/mopidy.conf
 
 RUN echo "Cleaining Up" \
   && apk del \
       gcc g++ make git musl-utils \
       libxml2-dev libxslt-dev \
-      python2-dev python3-dev \
   #&& rm -rf /tmp/* \
   && rm -rf ~/.cache/pip \
   && rm -rf /var/cache/apk/*
 
 # Server socket.
 EXPOSE 6680
+EXPOSE 6600
 
 # Install more Mopidy extensions from PyPI.
 # RUN pip install Mopidy-MusicBox-Webclient
