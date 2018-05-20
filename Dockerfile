@@ -81,7 +81,7 @@ RUN echo "Fixing up Mopidy Config" \
   	-e "s#%MOPIDY_CACHE_DIR%#$MOPIDY_CACHE_DIR#g" \
   	-e "s#%MOPIDY_DATA_DIR%#$MOPIDY_DATA_DIR#g" \
   	-e "s#%MOPIDY_CONFIG_DIR%#$MOPIDY_CONFIG_DIR#g" \
-    ${MOPIDY_CONFIG_DIR}/mopidy.conf
+    "${MOPIDY_CONFIG_DIR}/mopidy.conf"
 
 RUN echo "Cleaining Up" \
   && apk del \
@@ -100,4 +100,4 @@ EXPOSE 6600
 # RUN pip install Mopidy-Mobile
 
 ENTRYPOINT ["/sbin/tini", "--"]
-CMD ["mopidy", "--config","${MOPIDY_CONFIG_DIR}"]
+CMD ["mopidy"]
